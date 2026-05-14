@@ -1,13 +1,14 @@
 "use server";
 
+import { ChallengeStat } from "@/config/apex-weapons.config";
 import {
   ActionResult,
-  ChallengeStats,
   idsSchema,
   weaponNameSchema,
-} from "@/config/utils";
+} from "@/config/utils.config";
 import prisma from "@/lib/prisma";
-import { ChallengeSchema, type Challenge } from "@/schema/challenge";
+import { ChallengeSchema } from "@/schema/challenge";
+import { Challenge } from "@app/generated/prisma/client";
 import { z } from "zod";
 
 // --- Actions ---
@@ -60,7 +61,7 @@ export async function getChallenges(
 
 export async function getChallengesStats(
   getAll = false,
-): Promise<ActionResult<ChallengeStats>> {
+): Promise<ActionResult<ChallengeStat>> {
   try {
     const [stats, totalGamePlayed] = await prisma.$transaction([
       prisma.challenge.aggregate({
@@ -72,7 +73,7 @@ export async function getChallengesStats(
       prisma.challenge.count(),
     ]);
 
-    const data: ChallengeStats = {
+    const data: ChallengeStat = {
       average: {
         accuracy: stats._avg.accuracy ?? 0,
         damage: stats._avg.damage ?? 0,

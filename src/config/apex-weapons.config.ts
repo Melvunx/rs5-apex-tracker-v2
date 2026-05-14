@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { weaponNameSchema } from "./utils.config";
 
 export const WEAPON_TYPE = {
   PISTOL: "Pistolet",
@@ -23,7 +24,7 @@ export const WeaponTypeSchema = z.enum([
 export type WeaponType = z.infer<typeof WeaponTypeSchema>;
 
 export const WeaponSchema = z.object({
-  name: z.string().min(1),
+  name: weaponNameSchema,
   slug: z.string().min(1), // utilisé pour les paths d'images
   type: WeaponTypeSchema,
 });
@@ -74,6 +75,32 @@ const RAW_WEAPONS = [
 // Validé une seule fois au démarrage
 export const WEAPONS = z.array(WeaponSchema).parse(RAW_WEAPONS);
 
+export const ChallengeStatSchema = z.object({
+  average: z.object({
+    accuracy: z.number(),
+    damage: z.number(),
+    kills: z.number(),
+  }),
+  totalGamePlayed: z.number(),
+  maxAccuracy: z.number(),
+  minAccuracy: z.number(),
+});
+
+export type ChallengeStat = z.infer<typeof ChallengeStatSchema>;
+
+export const WeaponStatSchema = z.object({
+  weaponName: weaponNameSchema,
+  challengePlayed: z.number(),
+  average: z.object({
+    accuracy: z.number(),
+    damage: z.number(),
+    kills: z.number(),
+    shotsHit: z.number(),
+  }),
+});
+
+export type WeaponStat = z.infer<typeof WeaponStatSchema>;
+
 // --- Helpers ---
 export function getWeaponsByType(type: WeaponType) {
   return WEAPONS.filter((w) => w.type === type);
@@ -89,4 +116,17 @@ export function getWeaponImagePath(type: WeaponType, slug: string) {
 
 export function getWeaponBadgePath(slug: string) {
   return `/apex-weapons/badges/${slug}.webp`;
+}
+
+export function defaultWeaponStats(weaponName: string): WeaponStat {
+  return {
+    weaponName,
+    challengePlayed: 0,
+    average: {
+      accuracy: 0,
+      damage: 0,
+      kills: 0,
+      shotsHit: 0,
+    },
+  };
 }

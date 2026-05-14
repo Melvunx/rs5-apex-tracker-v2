@@ -1,10 +1,7 @@
 "use server";
 
-import {
-  ActionResult,
-  defaultWeaponStats,
-  weaponNameSchema,
-} from "@/config/utils";
+import { defaultWeaponStats, WeaponStat } from "@/config/apex-weapons.config";
+import { ActionResult, weaponNameSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 
 // --- Helpers ---
@@ -21,7 +18,7 @@ async function weaponExists(weaponName: string): Promise<boolean> {
 
 export async function getWeaponStats(
   weaponName: unknown,
-): Promise<ActionResult<typeof defaultWeaponStats>> {
+): Promise<ActionResult<WeaponStat>> {
   const parsed = weaponNameSchema.safeParse(weaponName);
 
   if (!parsed.success) {
@@ -31,7 +28,7 @@ export async function getWeaponStats(
   try {
     if (!(await weaponExists(parsed.data))) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
-      return { success: true, data: defaultWeaponStats };
+      return { success: true, data: defaultWeaponStats(parsed.data) };
     }
 
     const stats = await prisma.challenge.aggregate({
@@ -43,6 +40,7 @@ export async function getWeaponStats(
     return {
       success: true,
       data: {
+        weaponName: parsed.data,
         challengePlayed: stats._count.weapon ?? 0,
         average: {
           accuracy: stats._avg.accuracy ?? 0,

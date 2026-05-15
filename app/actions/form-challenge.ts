@@ -5,15 +5,14 @@ import { importChallenge, type ImportResult } from "./import-challenge";
 
 const FileSchema = z
   .instanceof(File)
-  .refine((file) => file.name.endsWith(".csv"), {
-    message: "Le fichier doit être au format CSV",
+  .refine((file) => file.name.endsWith(".txt"), {
+    message: "Le fichier doit être au format TXT",
   });
 
 export async function uploadChallengeFile(
   data: FormData,
 ): Promise<ImportResult> {
   const raw = data.get("file");
-
   const parsed = FileSchema.safeParse(raw);
 
   if (!parsed.success) {

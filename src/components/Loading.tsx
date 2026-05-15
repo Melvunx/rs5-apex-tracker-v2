@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from "./ui/card";
 import { Spinner } from "./ui/spinner";
 

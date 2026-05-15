@@ -36,7 +36,7 @@ export function Form({
         >
           <input
             type="file"
-            accept=".csv"
+            accept=".txt"
             onChange={handleFileChange}
             ref={ref}
             className="hidden"
@@ -55,7 +55,7 @@ export function Form({
         <Submit emptyInput={!file} />
         <Tooltip>
           <TooltipTrigger>
-            <Button type="button" size="sm" variant="ghost" onClick={onReset}>
+            <Button size="sm" variant="ghost" onClick={onReset}>
               X
             </Button>
           </TooltipTrigger>

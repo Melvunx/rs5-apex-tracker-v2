@@ -1,17 +1,20 @@
 "use server";
 
-import { defaultWeaponStats, WeaponStat } from "@/config/apex-weapons.config";
+import {
+  defaultWeaponStats,
+  getWeaponByName,
+  WeaponStat,
+} from "@/config/apex-weapons.config";
 import { ActionResult, weaponNameSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 
 // --- Helpers ---
 
-async function weaponExists(weaponName: string): Promise<boolean> {
-  const weapon = await prisma.challenge.findFirst({
+async function weaponChallengeExists(weaponName: string): Promise<boolean> {
+  const count = await prisma.challenge.count({
     where: { weapon: weaponName },
-    select: { id: true }, // on récupère uniquement l'id, plus léger
   });
-  return !!weapon;
+  return count > 0;
 }
 
 // --- Actions ---
@@ -26,9 +29,11 @@ export async function getWeaponStats(
   }
 
   try {
-    if (!(await weaponExists(parsed.data))) {
+    const weapon = getWeaponByName(parsed.data);
+
+    if (!(await weaponChallengeExists(parsed.data))) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
-      return { success: true, data: defaultWeaponStats(parsed.data) };
+      return { success: true, data: defaultWeaponStats(weapon) };
     }
 
     const stats = await prisma.challenge.aggregate({
@@ -40,7 +45,7 @@ export async function getWeaponStats(
     return {
       success: true,
       data: {
-        weaponName: parsed.data,
+        weapon,
         challengePlayed: stats._count.weapon ?? 0,
         average: {
           accuracy: stats._avg.accuracy ?? 0,
@@ -69,7 +74,7 @@ export async function getMaxWeaponAccuracy(
   }
 
   try {
-    if (!(await weaponExists(parsed.data))) {
+    if (!(await weaponChallengeExists(parsed.data))) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
       return { success: true, data: { accuracy: 0 } };
     }
@@ -96,7 +101,7 @@ export async function getMaxWeaponShotsHit(
   }
 
   try {
-    if (!(await weaponExists(parsed.data))) {
+    if (!(await weaponChallengeExists(parsed.data))) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
       return { success: true, data: { shotsHit: 0 } };
     }
@@ -123,7 +128,7 @@ export async function getChallengePlayedPerWeapon(
   }
 
   try {
-    if (!(await weaponExists(parsed.data))) {
+    if (!(await weaponChallengeExists(parsed.data))) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
       return { success: true, data: { challengePlayed: 0 } };
     }

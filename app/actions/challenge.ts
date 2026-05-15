@@ -19,7 +19,7 @@ export async function createChallenges(
   const parsed = z.array(ChallengeSchema).safeParse(rawChallenges);
 
   if (!parsed.success) {
-    console.error("❌ Données invalides :", z.treeifyError(parsed.error));
+    console.error("❌ Données invalides :", parsed.error);
     return { success: false, error: "Données invalides" };
   }
 

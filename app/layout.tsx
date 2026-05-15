@@ -1,6 +1,8 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Footer } from "@/layout/Footer";
+import { Header } from "@/layout/Header";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import {
@@ -60,7 +62,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Toaster />
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            <Header />
+            {children}
+            <Footer />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

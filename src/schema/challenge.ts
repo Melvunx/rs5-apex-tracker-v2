@@ -3,15 +3,19 @@ import { z } from "zod";
 import { WeaponSchema } from "../config/apex-weapons.config";
 
 const percentageString = z
-  .string()
-  .regex(/^\d+(\.\d+)?%$/, "Format attendu : '37.33%'")
-  .transform((val) => parseFloat(val.replace("%", "")));
+  .union([z.string(), z.number()]) // accepte string OU number
+  .transform((val) => {
+    const str = String(val).replace("%", "").trim();
+    const num = parseFloat(str);
+    if (isNaN(num)) throw new Error("Format de pourcentage invalide");
+    return num;
+  });
 
 export const ChallengeCSVSchema = z.object({
-  ChallengeName: z.string().min(1),
+  ChallengeName: z.coerce.string().min(1),
   ShotsHit: z.coerce.number().int().nonnegative(),
   Kills: z.coerce.number().int().nonnegative(),
-  Weapon: WeaponSchema.shape.name,
+  Weapon: z.coerce.string().pipe(WeaponSchema.shape.name),
   Accuracy: percentageString,
   Damage: z.coerce.number().int().nonnegative(),
   CriticalShots: z.coerce.number().int().nonnegative(),
@@ -19,7 +23,6 @@ export const ChallengeCSVSchema = z.object({
   Roundtime: z.coerce.number().int().positive(),
 });
 
-// Schéma normalisé (après transformation, prêt pour Prisma)
 export const ChallengeSchema = ChallengeCSVSchema.transform((data) => ({
   challengeName: data.ChallengeName,
   shotsHit: data.ShotsHit,

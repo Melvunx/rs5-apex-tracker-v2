@@ -37,14 +37,12 @@ import { useEffect, useState, useTransition } from "react";
 const ALL_WEAPONS_LABEL = "Toutes les armes";
 
 // Armes groupées par type, calculé une seule fois
-const WEAPONS_BY_TYPE = (Object.keys(TIME_RANGE_LABELS) as TimeRange[]).reduce(
-  () => {
-    const grouped: Record<string, typeof WEAPONS> = {};
-    for (const weapon of WEAPONS) {
-      if (!grouped[weapon.type]) grouped[weapon.type] = [];
-      grouped[weapon.type].push(weapon);
-    }
-    return grouped;
+const WEAPONS_BY_TYPE = WEAPONS.reduce(
+  (acc, weapon) => {
+    if (weapon.type === "NOT FOUND") return acc; // on ignore ce type
+    if (!acc[weapon.type]) acc[weapon.type] = [];
+    acc[weapon.type].push(weapon);
+    return acc;
   },
   {} as Record<string, typeof WEAPONS>,
 );

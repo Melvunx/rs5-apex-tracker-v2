@@ -1,7 +1,7 @@
 // actions/import-challenge.ts
 "use server";
 
-import { ChallengeCSVSchema } from "@/schema/challenge";
+import { ChallengeSchema } from "@/schema/challenge";
 import { z } from "zod";
 import { createChallenges } from "./challenge";
 
@@ -34,25 +34,23 @@ const defaultError = (
 // --- Parser CSV ---
 
 function parseCSVLines(lines: string[]): {
-  records: z.output<typeof ChallengeCSVSchema>[];
+  records:      z.output<typeof ChallengeSchema>[]; // ← output, pas input
   successCount: number;
-  errorCount: number;
+  errorCount:   number;
   errorDetails: string[];
 } {
-  const records = [];
+  const records      = [];
   const errorDetails = [];
-  let successCount = 0;
-  let errorCount = 0;
+  let successCount   = 0;
+  let errorCount     = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    const lineNumber = i + 3; // +3 car on a skippé header + types
-    const columns = lines[i].split(",").map((col) => col.trim());
+    const lineNumber = i + 3;
+    const columns    = lines[i].split(",").map((col) => col.trim());
 
     if (columns.length < EXPECTED_COLUMNS) {
       errorCount++;
-      errorDetails.push(
-        `⚠️ Ligne ${lineNumber} : format invalide (${columns.length} colonnes)`,
-      );
+      errorDetails.push(`⚠️ Ligne ${lineNumber} : format invalide (${columns.length} colonnes)`);
       continue;
     }
 
@@ -68,7 +66,9 @@ function parseCSVLines(lines: string[]): {
       Roundtime,
     ] = columns;
 
-    const parsed = ChallengeCSVSchema.safeParse({
+    // ChallengeSchema au lieu de ChallengeCSVSchema
+    // → applique le .transform() et retourne les clés camelCase pour Prisma
+    const parsed = ChallengeSchema.safeParse({
       ChallengeName,
       ShotsHit,
       Kills,
@@ -87,11 +87,12 @@ function parseCSVLines(lines: string[]): {
       continue;
     }
 
-    records.push(parsed.data);
+    records.push(parsed.data); // ← données transformées : { challengeName, shotsHit, ... }
     successCount++;
   }
 
   if (errorCount === 0) console.log("✔️ Aucune erreur détectée !");
+  console.log("Records :", records);
 
   return { records, successCount, errorCount, errorDetails };
 }

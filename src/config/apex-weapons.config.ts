@@ -53,15 +53,15 @@ const RAW_WEAPONS = [
 
   // LMGS
   { name: "Devotion", slug: "devotion", type: "LMG" },
-  { name: "L-star", slug: "lstar", type: "LMG" },
+  { name: "L-Star", slug: "lstar", type: "LMG" },
   { name: "Spitfire", slug: "spitfire", type: "LMG" },
 
   // MARKSMANS
-  { name: "G7", slug: "G7", type: "MARKSMAN" },
-  { name: "Triple-Take", slug: "tripletake", type: "MARKSMAN" },
+  { name: "G7 Scout", slug: "G7", type: "MARKSMAN" },
+  { name: "Triple Take", slug: "tripletake", type: "MARKSMAN" },
 
   //SNIPERS
-  { name: "Charge-Rifle", slug: "chargerifle", type: "SNIPER" },
+  { name: "Charge Rifle", slug: "chargerifle", type: "SNIPER" },
   { name: "Kraber", slug: "kraber", type: "SNIPER" },
   { name: "Longbow", slug: "longbow", type: "SNIPER" },
   { name: "Sentinel", slug: "sentinel", type: "SNIPER" },

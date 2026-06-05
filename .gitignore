@@ -9,14 +9,14 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+.vscode
 # testing
 /coverage
-
+sql/
 # next.js
 /.next/
 /out/
-
+*.sql
 # production
 /build
 

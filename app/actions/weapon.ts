@@ -30,9 +30,10 @@ export async function getWeaponStats(
 
   try {
     const weapon = getWeaponByName(parsed.data);
+    console.log(`Nom de l'arme : ${weapon.name}`, weapon);
 
-    if (!(await weaponChallengeExists(parsed.data))) {
-      console.log(`❌ Aucun challenge trouvé pour l'arme "${parsed.data}"`);
+    if (!(await weaponChallengeExists(weapon.name))) {
+      console.log(`❌ Aucun challenge trouvé pour l'arme "${weapon.name}"`);
       return { success: true, data: defaultWeaponStats(weapon) };
     }
 
@@ -41,6 +42,8 @@ export async function getWeaponStats(
       _count: { weapon: true },
       _avg: { accuracy: true, damage: true, kills: true, shotsHit: true },
     });
+
+    console.log("stats : ", stats);
 
     return {
       success: true,

@@ -5,7 +5,6 @@ import { RefObject } from "react";
 import { Submit } from "./Submit";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 type FormProps = {
   action: (formData: FormData) => Promise<void>;
@@ -53,16 +52,9 @@ export function Form({
       </div>
       <div>
         <Submit emptyInput={!file} />
-        <Tooltip>
-          <TooltipTrigger>
-            <Button size="sm" variant="ghost" onClick={onReset}>
-              X
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <span>Reset</span>
-          </TooltipContent>
-        </Tooltip>
+        <Button size="sm" variant="ghost" onClick={onReset}>
+          Reset
+        </Button>
       </div>
     </form>
   );

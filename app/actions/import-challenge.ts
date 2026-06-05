@@ -5,9 +5,20 @@ import { ChallengeSchema } from "@/schema/challenge";
 import { z } from "zod";
 import { createChallenges } from "./challenge";
 
-// --- Schémas ---
-
 const EXPECTED_COLUMNS = 9;
+
+// Noms de colonnes attendus dans le fichier txt (avec espaces possibles)
+const EXPECTED_HEADERS = [
+  "ChallengeName",
+  "ShotsHit",
+  "Kills",
+  "Weapon",
+  "Accuracy",
+  "Damage",
+  "CriticalShots",
+  "TotalShots",
+  "Roundtime",
+];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ImportResultSchema = z.object({
@@ -31,26 +42,28 @@ const defaultError = (
   errorDetails: errorDetails ?? [message],
 });
 
-// --- Parser CSV ---
-
 function parseCSVLines(lines: string[]): {
-  records:      z.output<typeof ChallengeSchema>[]; // ← output, pas input
+  records: z.output<typeof ChallengeSchema>[];
   successCount: number;
-  errorCount:   number;
+  errorCount: number;
   errorDetails: string[];
 } {
-  const records      = [];
+  const records = [];
   const errorDetails = [];
-  let successCount   = 0;
-  let errorCount     = 0;
+  let successCount = 0;
+  let errorCount = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const lineNumber = i + 3;
-    const columns    = lines[i].split(",").map((col) => col.trim());
+
+    // Découpe par virgule et nettoie les espaces autour de chaque valeur
+    const columns = lines[i].split(",").map((col) => col.trim());
 
     if (columns.length < EXPECTED_COLUMNS) {
       errorCount++;
-      errorDetails.push(`⚠️ Ligne ${lineNumber} : format invalide (${columns.length} colonnes)`);
+      errorDetails.push(
+        `⚠️ Ligne ${lineNumber} : format invalide (${columns.length} colonnes)`,
+      );
       continue;
     }
 
@@ -66,8 +79,6 @@ function parseCSVLines(lines: string[]): {
       Roundtime,
     ] = columns;
 
-    // ChallengeSchema au lieu de ChallengeCSVSchema
-    // → applique le .transform() et retourne les clés camelCase pour Prisma
     const parsed = ChallengeSchema.safeParse({
       ChallengeName,
       ShotsHit,
@@ -87,17 +98,16 @@ function parseCSVLines(lines: string[]): {
       continue;
     }
 
-    records.push(parsed.data); // ← données transformées : { challengeName, shotsHit, ... }
+    records.push(parsed.data);
     successCount++;
   }
 
   if (errorCount === 0) console.log("✔️ Aucune erreur détectée !");
-  console.log("Records :", records);
+
+  console.log({ records, successCount, errorCount, errorDetails });
 
   return { records, successCount, errorCount, errorDetails };
 }
-
-// --- Action principale ---
 
 export async function importChallenge(text: string): Promise<ImportResult> {
   const verifLine = process.env.VERIF_LINE;
@@ -110,12 +120,28 @@ export async function importChallenge(text: string): Promise<ImportResult> {
 
   console.log("📥 Début de l'import des données...\n");
 
+  // Filtre les lignes vides
   const lines = text.split("\n").filter((line) => line.trim());
-  const header = lines[0];
-  const types = lines[1]?.split(",").filter((t) => t.trim()) ?? [];
 
-  if (!header.includes(verifLine) || types.length !== EXPECTED_COLUMNS) {
+  const header = lines[0];
+  const columns = lines[1]
+    .split(",")
+    .map((col) => col.trim());
+
+  // Vérifie la signature du fichier
+  if (!header.includes(verifLine)) {
     const message = "❌ Le fichier importé n'est pas valide";
+    console.error(message);
+    return defaultError(message);
+  }
+
+  // Vérifie que les colonnes correspondent exactement aux colonnes attendues
+  const headersMatch =
+    columns.length === EXPECTED_COLUMNS &&
+    EXPECTED_HEADERS.every((expected, i) => columns[i] === expected);
+
+  if (!headersMatch) {
+    const message = `❌ En-têtes invalides. Attendu : ${EXPECTED_HEADERS.join(", ")}`;
     console.error(message);
     return defaultError(message);
   }

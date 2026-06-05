@@ -10,11 +10,20 @@ import prisma from "@/lib/prisma";
 
 // --- Helpers ---
 
-async function weaponChallengeExists(weaponName: string): Promise<boolean> {
-  const count = await prisma.challenge.count({
-    where: { weapon: weaponName },
-  });
-  return count > 0;
+async function weaponChallengeExists(weaponName: string) {
+  try {
+    const challengeExist = await prisma.challenge.findFirst({
+      where: {
+        weapon: weaponName,
+      },
+    });
+
+    console.log(`TEST ${weaponName}`, challengeExist !== null);
+    return challengeExist !== null;
+  } catch (error) {
+    console.error("❌ Erreur durant le test :", error);
+    return false;
+  }
 }
 
 // --- Actions ---
@@ -24,26 +33,25 @@ export async function getWeaponStats(
 ): Promise<ActionResult<WeaponStat>> {
   const parsed = weaponNameSchema.safeParse(weaponName);
 
-  if (!parsed.success) {
-    return { success: false, error: "Nom d'arme invalide" };
-  }
+  if (!parsed.success) return { success: false, error: "Nom d'arme invalide" };
 
   try {
     const weapon = getWeaponByName(parsed.data);
     console.log(`Nom de l'arme : ${weapon.name}`, weapon);
 
-    if (!(await weaponChallengeExists(weapon.name))) {
+    if (
+      weapon.type === "NOT FOUND" ||
+      !(await weaponChallengeExists(weapon.name))
+    ) {
       console.log(`❌ Aucun challenge trouvé pour l'arme "${weapon.name}"`);
       return { success: true, data: defaultWeaponStats(weapon) };
     }
 
     const stats = await prisma.challenge.aggregate({
-      where: { weapon: parsed.data },
+      where: { weapon: weapon.name },
       _count: { weapon: true },
       _avg: { accuracy: true, damage: true, kills: true, shotsHit: true },
     });
-
-    console.log("stats : ", stats);
 
     return {
       success: true,

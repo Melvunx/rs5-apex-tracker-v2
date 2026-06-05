@@ -7,7 +7,7 @@ import {
   weaponNameSchema,
 } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
-import { ChallengeSchema } from "@/schema/challenge";
+import { ChallengeNormalizedSchema } from "@/schema/challenge";
 import { Challenge } from "@app/generated/prisma/client";
 import { z } from "zod";
 
@@ -16,7 +16,7 @@ import { z } from "zod";
 export async function createChallenges(
   rawChallenges: unknown[],
 ): Promise<ActionResult<{ count: number }>> {
-  const parsed = z.array(ChallengeSchema).safeParse(rawChallenges);
+  const parsed = z.array(ChallengeNormalizedSchema).safeParse(rawChallenges);
 
   if (!parsed.success) {
     console.error("❌ Données invalides :", parsed.error);

@@ -59,7 +59,7 @@ export function Graph() {
       setFilteredData([]);
 
       const result = await getChallenges();
-      if (!result.success) return;
+      if (!result.success || result.data.length === 0) return;
 
       const filtered = result.data.filter(
         (c) => c.challengeName === "STRAFING DUMMY" && c.accuracy !== 0,

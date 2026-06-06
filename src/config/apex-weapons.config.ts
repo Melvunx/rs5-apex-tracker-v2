@@ -75,8 +75,18 @@ const RAW_WEAPONS = [
   { name: "Peacekeeper", slug: "peacekeeper", type: "SHOTGUN" },
 ] satisfies z.input<typeof WeaponSchema>[];
 
-// Validé une seule fois au démarrage
 export const WEAPONS = z.array(WeaponSchema).parse(RAW_WEAPONS);
+
+// Armes groupées par type
+export const WEAPONS_BY_TYPE = WEAPONS.reduce(
+  (acc, weapon) => {
+    if (weapon.type === "NOT FOUND") return acc; // on ignore ce type
+    if (!acc[weapon.type]) acc[weapon.type] = [];
+    acc[weapon.type].push(weapon);
+    return acc;
+  },
+  {} as Record<string, typeof WEAPONS>,
+);
 
 export const ChallengeStatSchema = z.object({
   average: z.object({
@@ -125,6 +135,11 @@ export function getWeaponImagePath(type: WeaponType, slug: string) {
 
 export function getWeaponBadgePath(slug: string) {
   return `/apex-weapons/badges/${slug}.webp`;
+}
+
+export function getImagePathByWeaponName(weaponName: string) {
+  const weapon = getWeaponByName(weaponName);
+  return getWeaponImagePath(weapon.type, weapon.slug);
 }
 
 export function defaultWeaponStats(weapon: Weapon): WeaponStat {

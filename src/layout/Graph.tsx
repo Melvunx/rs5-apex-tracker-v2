@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ALL_WEAPONS_LABEL,
-  WEAPONS,
+  WEAPONS_BY_TYPE,
+  getImagePathByWeaponName,
   getWeaponImagePath,
 } from "@/config/apex-weapons.config";
 import {
@@ -38,17 +39,6 @@ import {
 import { getAllChallenges } from "@app/actions/challenge";
 import { Challenge } from "@app/generated/prisma/client";
 import { useEffect, useState, useTransition } from "react";
-
-// Armes groupées par type, calculé une seule fois
-const WEAPONS_BY_TYPE = WEAPONS.reduce(
-  (acc, weapon) => {
-    if (weapon.type === "NOT FOUND") return acc; // on ignore ce type
-    if (!acc[weapon.type]) acc[weapon.type] = [];
-    acc[weapon.type].push(weapon);
-    return acc;
-  },
-  {} as Record<string, typeof WEAPONS>,
-);
 
 export function Graph() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -96,6 +86,8 @@ export function Graph() {
           timeRange,
         ).length
       : filterByDateRange(challenges, timeRange).length;
+
+  const isAllWeaponLabel = weaponName === ALL_WEAPONS_LABEL;
 
   if (isPending) return <Loading loadingString="Chargement du graphique" />;
 
@@ -179,12 +171,24 @@ export function Graph() {
                 <Button
                   variant="outline"
                   className={
-                    weaponName === ALL_WEAPONS_LABEL
-                      ? "text-cyan-100"
-                      : "text-primary"
+                    isAllWeaponLabel ? "text-cyan-100" : "text-rose-300"
                   }
                 >
-                  {weaponName}
+                  {isAllWeaponLabel ? (
+                    ALL_WEAPONS_LABEL
+                  ) : (
+                    <div className="flex gap-2 items-center">
+                      <Avatar>
+                        <AvatarImage
+                          src={getImagePathByWeaponName(weaponName)}
+                        />
+                        <AvatarFallback>
+                          {weaponName.slice(0, 3).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>{weaponName}</span>
+                    </div>
+                  )}
                 </Button>
               }
             ></DropdownMenuTrigger>
@@ -260,13 +264,13 @@ export function Graph() {
         <div>
           <p className="text-sm text-muted-foreground">
             {`Affichage des données pour ${
-              weaponName === ALL_WEAPONS_LABEL ? "toutes les armes" : weaponName
+              isAllWeaponLabel ? "toutes les armes" : weaponName
             } sur les ${TIME_RANGE_LABELS[timeRange]}.`}
           </p>
           <p>
-            {weaponName !== ALL_WEAPONS_LABEL
+            {!isAllWeaponLabel
               ? `Challenges avec cette arme : ${challengeCount}`
-              : `Total challenges : ${challengeCount}`}
+              : `Total de challenges : ${challengeCount}`}
           </p>
           {filteredData.length === 0 && (
             <p className="text-lg text-red-500">

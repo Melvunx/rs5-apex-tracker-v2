@@ -18,7 +18,6 @@ async function weaponChallengeExists(weaponName: string) {
       },
     });
 
-    console.log(`TEST ${weaponName}`, challengeExist !== null);
     return challengeExist !== null;
   } catch (error) {
     console.error("❌ Erreur durant le test :", error);
@@ -37,7 +36,6 @@ export async function getWeaponStats(
 
   try {
     const weapon = getWeaponByName(parsed.data);
-    console.log(`Nom de l'arme : ${weapon.name}`, weapon);
 
     if (
       weapon.type === "NOT FOUND" ||

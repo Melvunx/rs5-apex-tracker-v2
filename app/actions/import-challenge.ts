@@ -104,8 +104,6 @@ function parseCSVLines(lines: string[]): {
 
   if (errorCount === 0) console.log("✔️ Aucune erreur détectée !");
 
-  console.log({ records, successCount, errorCount, errorDetails });
-
   return { records, successCount, errorCount, errorDetails };
 }
 
@@ -124,9 +122,7 @@ export async function importChallenge(text: string): Promise<ImportResult> {
   const lines = text.split("\n").filter((line) => line.trim());
 
   const header = lines[0];
-  const columns = lines[1]
-    .split(",")
-    .map((col) => col.trim());
+  const columns = lines[1].split(",").map((col) => col.trim());
 
   // Vérifie la signature du fichier
   if (!header.includes(verifLine)) {

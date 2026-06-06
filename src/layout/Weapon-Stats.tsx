@@ -27,7 +27,10 @@ export function WeaponStats() {
   }, []);
 
   return (
-    <div className="flex items-center min-h-screen">
+    <div className="flex flex-col my-6 mx-auto max-w-4xl gap-6 min-h-screen">
+      <h1 className="text-3xl font-mono font-semibold italic text-muted-foreground">
+        Statsistique par armes !
+      </h1>
       <CarrouselStats stats={weaponStats} pending={isPending} />
     </div>
   );

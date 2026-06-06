@@ -1,26 +1,23 @@
+// app/page.tsx
+import { SectionReveal } from "@/components/SectionReveal";
 import { FileForm } from "@/layout/File-form";
 import { Graph } from "@/layout/Graph";
 import { WeaponStats } from "@/layout/Weapon-Stats";
 
 export default function Home() {
   return (
-    <main>
-      <main className="min-h-screen flex flex-col items-center gap-20 max-w-7xl w-full mx-auto pt-8 px-4">
-        <section className="max-w-4xl w-full" id="graph">
-          <Graph />
-        </section>
+    <main className="min-h-screen flex flex-col items-center gap-20 max-w-7xl w-full mx-auto pt-8 px-4">
+      <SectionReveal id="graph" className="max-w-4xl w-full">
+        <Graph />
+      </SectionReveal>
 
-        <section
-          className="max-w-3xl w-full"
-          id="form"
-        >
-          <FileForm />
-        </section>
+      <SectionReveal id="form" className="max-w-3xl w-full" delay={0.15}>
+        <FileForm />
+      </SectionReveal>
 
-        <section className="w-full" id="carrousel">
-          <WeaponStats />
-        </section>
-      </main>
+      <SectionReveal id="carrousel" className="w-full" delay={0.2}>
+        <WeaponStats />
+      </SectionReveal>
     </main>
   );
 }

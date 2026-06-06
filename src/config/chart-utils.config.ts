@@ -1,12 +1,16 @@
 // lib/chart-utils.ts
 import { Challenge } from "@app/generated/prisma/client";
 import { z } from "zod";
+import { ALL_WEAPONS_LABEL } from "./apex-weapons.config";
+import { weaponNameSchema } from "./utils.config";
 
 // --- Schémas ---
 
 export const ChartDataSchema = z.object({
   accuracy: z.number(),
   day: z.string(),
+  session: z.number(),
+  weaponName: weaponNameSchema,
 });
 
 export type ChartData = z.infer<typeof ChartDataSchema>;
@@ -72,13 +76,15 @@ export function filterWeaponChallenges(
   const data = challenges
     .filter(
       (c) =>
-        (weaponName === "Toutes les armes" || c.weapon === weaponName) &&
+        (weaponName === ALL_WEAPONS_LABEL || c.weapon === weaponName) &&
         c.challengeName === "STRAFING DUMMY" &&
         c.accuracy !== 0,
     )
-    .map((c) => ({
+    .map((c, index) => ({
       accuracy: c.accuracy,
       day: c.createdAt.toISOString().split("T")[0],
+      session: index + 1,
+      weaponName: c.weapon,
     }));
 
   return timeRange ? filterByDateRange(data, timeRange) : data;

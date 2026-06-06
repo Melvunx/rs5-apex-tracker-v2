@@ -4,15 +4,9 @@ import {
   ChartData,
   TimeRange,
   formatedDate,
-  getMinTickGap,
 } from "@/config/chart-utils.config";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "./ui/chart";
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis } from "recharts";
+import { ChartConfig, ChartContainer } from "./ui/chart";
 import { Spinner } from "./ui/spinner";
 
 type ChartProps = {
@@ -28,7 +22,35 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartStarts({ data, isLoading, timeRange }: ChartProps) {
+type TooltipPayload = {
+  payload: ChartData;
+};
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: TooltipPayload[];
+};
+
+// Tooltip custom pour afficher session + date + précision
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const { session, day, accuracy, weaponName } = payload[0].payload;
+
+  return (
+    <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-sm">
+      <p className="text-muted-foreground italic mb-1">
+        Session {session} — {formatedDate(new Date(day))}
+      </p>
+      <p className="font-semibold text-foreground mb-1">{weaponName}</p>
+      <p className="font-semibold text-primary">
+        Précision : {accuracy.toFixed(2)} %
+      </p>
+    </div>
+  );
+}
+
+export function ChartStarts({ data, isLoading }: ChartProps) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
@@ -37,42 +59,28 @@ export function ChartStarts({ data, isLoading, timeRange }: ChartProps) {
     );
   }
 
-  const formattedData = data.map((item) => ({
-    ...item,
-    day: formatedDate(new Date(item.day)),
-  }));
-
   return (
     <ChartContainer config={chartConfig}>
       <AreaChart
         accessibilityLayer
-        data={formattedData}
-        margin={{ left: 12, right: 12 }}
+        data={data}
+        margin={{ left: 15, right: 15 }}
       >
         <CartesianGrid vertical={false} />
         <XAxis
-          dataKey="day"
+          dataKey="session"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
-          minTickGap={getMinTickGap(timeRange)}
-          tickFormatter={(value) => value.slice(0, 6)}
+          tickMargin={10}
+          tickFormatter={(value) => `#${value}`}
         />
-        <ChartTooltip
-          cursor={false}
-          content={
-            <ChartTooltipContent
-              labelClassName="text-indigo-200 italic"
-              indicator="line"
-            />
-          }
-        />
+        <Tooltip content={<CustomTooltip />} />
         <Area
           dataKey="accuracy"
           type="natural"
           fill="var(--chart-1)"
           fillOpacity={0.4}
-          stroke="var(--color-desktop)"
+          stroke="var(--chart-1)"
         />
       </AreaChart>
     </ChartContainer>

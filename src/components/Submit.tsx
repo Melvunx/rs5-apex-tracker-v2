@@ -13,7 +13,7 @@ export function Submit({ emptyInput: empty }: SubmitProps) {
   return (
     <Button
       className="cursor-pointer transition-colors"
-      variant="ghost"
+      variant="outline"
       type="submit"
       disabled={pending || empty}
     >

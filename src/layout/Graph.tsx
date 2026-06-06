@@ -16,13 +16,18 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WEAPONS, getWeaponImagePath } from "@/config/apex-weapons.config";
+import {
+  ALL_WEAPONS_LABEL,
+  WEAPONS,
+  getWeaponImagePath,
+} from "@/config/apex-weapons.config";
 import {
   ChartData,
   TIME_RANGE_LABELS,
@@ -30,11 +35,9 @@ import {
   filterByDateRange,
   filterWeaponChallenges,
 } from "@/config/chart-utils.config";
-import { getChallenges } from "@app/actions/challenge";
+import { getAllChallenges } from "@app/actions/challenge";
 import { Challenge } from "@app/generated/prisma/client";
 import { useEffect, useState, useTransition } from "react";
-
-const ALL_WEAPONS_LABEL = "Toutes les armes";
 
 // Armes groupées par type, calculé une seule fois
 const WEAPONS_BY_TYPE = WEAPONS.reduce(
@@ -58,7 +61,8 @@ export function Graph() {
     startTransition(async () => {
       setFilteredData([]);
 
-      const result = await getChallenges();
+      const result = await getAllChallenges();
+
       if (!result.success || result.data.length === 0) return;
 
       const filtered = result.data.filter(
@@ -124,110 +128,121 @@ export function Graph() {
         <ButtonGroup>
           {/* Filtre période */}
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="outline"
-                className={
-                  timeRange === "7d"
-                    ? "text-lime-300"
-                    : timeRange === "30d"
-                      ? "text-orange-300"
-                      : "text-rose-300"
-                }
-              >
-                {TIME_RANGE_LABELS[timeRange]}
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className={
+                    timeRange === "7d"
+                      ? "text-lime-300"
+                      : timeRange === "30d"
+                        ? "text-orange-300"
+                        : "text-rose-300"
+                  }
+                >
+                  {TIME_RANGE_LABELS[timeRange]}
+                </Button>
+              }
+            ></DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>Filtrer par période</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={timeRange}
-                onValueChange={onDateChange}
-              >
-                {(Object.entries(TIME_RANGE_LABELS) as [TimeRange, string][])
-                  .reverse()
-                  .map(([value, label]) => (
-                    <DropdownMenuRadioItem
-                      key={value}
-                      value={value}
-                      className={
-                        timeRange === value
-                          ? "bg-primary/10 border-l-2 border-primary"
-                          : "hover:bg-accent"
-                      }
-                    >
-                      {label} derniers jours
-                    </DropdownMenuRadioItem>
-                  ))}
-              </DropdownMenuRadioGroup>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Filtrer par période</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={timeRange}
+                  onValueChange={onDateChange}
+                >
+                  {(Object.entries(TIME_RANGE_LABELS) as [TimeRange, string][])
+                    .reverse()
+                    .map(([value, label]) => (
+                      <DropdownMenuRadioItem
+                        key={value}
+                        value={value}
+                        className={
+                          timeRange === value
+                            ? "bg-primary/10 border-l-2 border-primary"
+                            : "hover:bg-accent"
+                        }
+                      >
+                        {label} derniers jours
+                      </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Filtre arme */}
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="outline"
-                className={
-                  weaponName === ALL_WEAPONS_LABEL
-                    ? "text-cyan-100"
-                    : "text-primary"
-                }
-              >
-                {weaponName}
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className={
+                    weaponName === ALL_WEAPONS_LABEL
+                      ? "text-cyan-100"
+                      : "text-primary"
+                  }
+                >
+                  {weaponName}
+                </Button>
+              }
+            ></DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel className="text-center">
-                Filtrer par arme
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                className="text-center h-56"
-                value={weaponName}
-                onValueChange={onWeaponChange}
-              >
-                <DropdownMenuRadioItem value={ALL_WEAPONS_LABEL}>
-                  {ALL_WEAPONS_LABEL}
-                </DropdownMenuRadioItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-center">
+                  Filtrer par arme
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {Object.entries(WEAPONS_BY_TYPE).map(([type, weapons]) => (
-                  <div key={type}>
-                    <DropdownMenuLabel className="font-semibold text-xs uppercase bg-gray-400/10 text-muted-foreground italic px-2 py-1.5">
-                      {type}
-                    </DropdownMenuLabel>
-                    {weapons.map((weapon) => {
-                      const isSelected = weaponName === weapon.name;
-                      return (
-                        <DropdownMenuRadioItem
-                          key={weapon.name}
-                          value={weapon.name}
-                          className={`flex w-full items-center my-1 rounded-sm transition-colors ${
-                            isSelected
-                              ? "bg-primary/10 border-l-2 border-primary"
-                              : "hover:bg-accent"
-                          }`}
-                        >
-                          <Avatar>
-                            <AvatarImage
-                              src={getWeaponImagePath(weapon.type, weapon.slug)}
-                            />
-                            <AvatarFallback>
-                              {weapon.name.slice(0, 3).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span
-                            className={`ml-1 ${isSelected ? "font-bold text-primary" : ""}`}
+                <DropdownMenuRadioGroup
+                  className="text-center h-56"
+                  value={weaponName}
+                  onValueChange={onWeaponChange}
+                >
+                  <DropdownMenuRadioItem value={ALL_WEAPONS_LABEL}>
+                    {ALL_WEAPONS_LABEL}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuSeparator />
+                  {Object.entries(WEAPONS_BY_TYPE).map(([type, weapons]) => (
+                    <div key={type}>
+                      <DropdownMenuLabel className="font-semibold text-xs uppercase bg-gray-400/10 text-muted-foreground italic px-2 py-1.5">
+                        {type}
+                      </DropdownMenuLabel>
+                      {weapons.map((weapon) => {
+                        const isSelected = weaponName === weapon.name;
+                        return (
+                          <DropdownMenuRadioItem
+                            key={weapon.name}
+                            value={weapon.name}
+                            className={`flex w-full items-center my-1 rounded-sm transition-colors ${
+                              isSelected
+                                ? "bg-primary/10 border-l-2 border-primary"
+                                : "hover:bg-accent"
+                            }`}
                           >
-                            {weapon.name}
-                          </span>
-                        </DropdownMenuRadioItem>
-                      );
-                    })}
-                  </div>
-                ))}
-              </DropdownMenuRadioGroup>
+                            <Avatar>
+                              <AvatarImage
+                                src={getWeaponImagePath(
+                                  weapon.type,
+                                  weapon.slug,
+                                )}
+                              />
+                              <AvatarFallback>
+                                {weapon.name.slice(0, 3).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span
+                              className={`ml-1 ${isSelected ? "font-bold text-primary" : ""}`}
+                            >
+                              {weapon.name}
+                            </span>
+                          </DropdownMenuRadioItem>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </ButtonGroup>

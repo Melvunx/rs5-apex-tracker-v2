@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { RefObject } from "react";
 import { Submit } from "./Submit";
 import { Button } from "./ui/button";
+import { ButtonGroup } from "./ui/button-group";
 import { Spinner } from "./ui/spinner";
 
 type FormProps = {
@@ -26,7 +27,7 @@ export function Form({
   return (
     <form
       action={(formData) => onHandleFormAction(formData)}
-      className="w-full flex flex-col items-center justify-center gap-2"
+      className="w-full flex flex-col items-center my-8 justify-center gap-2"
     >
       <div>
         <label
@@ -50,12 +51,16 @@ export function Form({
           </span>
         </label>
       </div>
-      <div>
+      <ButtonGroup>
         <Submit emptyInput={!file} />
-        <Button size="sm" variant="ghost" onClick={onReset}>
+        <Button
+          className="cursor-pointer transition-colors"
+          variant="outline"
+          onClick={onReset}
+        >
           Reset
         </Button>
-      </div>
+      </ButtonGroup>
     </form>
   );
 }

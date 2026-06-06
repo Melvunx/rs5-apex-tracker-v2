@@ -32,6 +32,8 @@ export const WeaponSchema = z.object({
 
 export type Weapon = z.infer<typeof WeaponSchema>;
 
+export const ALL_WEAPONS_LABEL = "Toutes les armes";
+
 // --- Données brutes ---
 const RAW_WEAPONS = [
   // PISTOLS

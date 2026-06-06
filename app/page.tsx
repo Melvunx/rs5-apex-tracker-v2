@@ -11,7 +11,7 @@ export default function Home() {
         </section>
 
         <section
-          className="flex items-center max-w-4xl min-h-screen w-full"
+          className="max-w-3xl w-full"
           id="form"
         >
           <FileForm />

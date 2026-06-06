@@ -1,11 +1,7 @@
 "use server";
 
 import { ChallengeStat } from "@/config/apex-weapons.config";
-import {
-  ActionResult,
-  idsSchema,
-  weaponNameSchema,
-} from "@/config/utils.config";
+import { ActionResult, idsSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 import { ChallengeNormalizedSchema } from "@/schema/challenge";
 import { Challenge } from "@app/generated/prisma/client";
@@ -37,18 +33,9 @@ export async function createChallenges(
   }
 }
 
-export async function getChallenges(
-  weaponName?: unknown,
-): Promise<ActionResult<Challenge[]>> {
-  const parsed = weaponNameSchema.safeParse(weaponName);
-
-  if (!parsed.success) {
-    return { success: false, error: "Nom d'arme invalide" };
-  }
-
+export async function getAllChallenges(): Promise<ActionResult<Challenge[]>> {
   try {
     const challenges = await prisma.challenge.findMany({
-      where: parsed.data ? { weapon: parsed.data } : undefined,
       orderBy: { createdAt: "desc" },
     });
 

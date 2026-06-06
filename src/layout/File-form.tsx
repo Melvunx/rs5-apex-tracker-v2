@@ -61,7 +61,7 @@ export function FileForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="scroll-m-20 text-2xl font-bold tracking-tight">
+        <CardTitle className="scroll-m-20 text-2xl mb-6 font-bold tracking-tight">
           Apex Legends Stats Importer !
         </CardTitle>
       </CardHeader>
@@ -78,7 +78,7 @@ export function FileForm() {
           inputRef={fileInputRef}
         />
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 pt-6 items-start">
+      <CardFooter className="flex flex-col gap-2 items-start">
         <div className="flex items-center gap-2 py-1.5 px-2 rounded-sm hover:bg-accent transition-colors w-full">
           <span className="text-sm font-semibold text-muted-foreground">
             Format accepté :

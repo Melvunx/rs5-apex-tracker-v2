@@ -7,76 +7,15 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
 }
 
-// --- Better Auth required models ---
-
-model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
-  image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  accounts    Account[]
-  sessions    Session[]
-  challenges  Challenge[]
-  sensitivity Sensitivity?
-
-  @@map("users")
+datasource db {
+  provider = "postgresql"
 }
 
-model Account {
-  id                    String    @id @default(cuid())
-  userId                String    @map("user_id")
-  accountId             String    @map("account_id")
-  providerId            String    @map("provider_id")
-  accessToken           String?   @map("access_token") @db.Text
-  refreshToken          String?   @map("refresh_token") @db.Text
-  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
-  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
-  scope                 String?
-  idToken               String?   @map("id_token") @db.Text
-  password              String?
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("accounts")
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  token     String   @unique
-  expiresAt DateTime @map("expires_at")
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model Verification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String
-  expiresAt  DateTime @map("expires_at")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  @@map("verifications")
-}
 
 model Challenge {
   id            String   @id @default(cuid())
@@ -91,30 +30,7 @@ model Challenge {
   roundtime     Int
   createdAt     DateTime @default(now()) @map("created_at")
 
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([weapon])
   @@index([challengeName])
-  @@index([userId])
   @@map("challenges")
-}
-
-model Sensitivity {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  mouseDpi         Int?   @map("mouse_dpi")
-  mouseSensitivity Float? @map("mouse_sensitivity")
-  mouseAds         Float? @map("mouse_ads")
-
-  controllerSensitivity    Int?   @map("controller_sensitivity")
-  controllerAdsSensitivity Int?   @map("controller_ads_sensitivity")
-  controllerDeadzone       Float? @map("controller_deadzone")
-
-  @@map("sensitivities")
 }

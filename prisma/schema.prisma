@@ -12,6 +12,7 @@ enum Role {
   ADMIN
 }
 
+
 // --- Better Auth required models ---
 
 model User {
@@ -105,18 +106,39 @@ model Challenge {
 model Sensitivity {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
 
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // --- Souris ---
   mouseDpi         Int?   @map("mouse_dpi")
   mouseSensitivity Float? @map("mouse_sensitivity")
-  mouseAds         Float? @map("mouse_ads")
 
-  controllerSensitivity    Int?   @map("controller_sensitivity")
-  controllerAdsSensitivity Int?   @map("controller_ads_sensitivity")
-  controllerDeadzone       Float? @map("controller_deadzone")
+  // Multiplicateurs optiques souris — stockés en JSON
+  // { x1, x2, x3, x4, x6, x8, x10 } tous à 1.0 par défaut
+  mouseOpticEnabled  Boolean @default(false) @map("mouse_optic_enabled")
+  mouseOpticSettings Json?   @default("{}") @map("mouse_optic_settings")
+
+  // --- Manette ---
+  baseControllerSetting String?        @map("base_controller_setting")
+
+  // {responseCurve, deadzone, outerThreshold}
+  advanceControllerSettingEnable Boolean @default(false)  @map("advance_controller_setting_enable")
+  advanceControllerSetting Json? @default("{}")           @map("advance_controller_setting")
+
+
+  // Multiplicateurs optiques manette — même structure JSON que souris
+  controllerOpticEnabled  Boolean @default(false) @map("controller_optic_enabled")
+  controllerOpticSettings Json?   @default("{}")  @map("controller_optic_settings")
+
+  // Paramètres de rotation — stockés en JSON pour éviter 12 colonnes
+  // { yaw, pitch, turningExtraYaw, turningExtraPitch, turningRampUpTime, turningRampUpDelay }
+  hipfireSettings Json? @default("{}") @map("hipfire_settings")
+
+  // Mêmes champs mais en ADS
+  // { yaw, pitch, turningExtraYaw, turningExtraPitch, turningRampUpTime, turningRampUpDelay }
+  adsSettings Json? @default("{}") @map("ads_settings")
 
   @@map("sensitivities")
 }

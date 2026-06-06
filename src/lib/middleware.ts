@@ -1,10 +1,12 @@
 import { auth } from "@/lib/auth";
-import { getSessionFromRequest } from "better-auth/next-js";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = await getSessionFromRequest(req, auth);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (pathname.startsWith("/admin")) {
     if (!session || session.user.role !== "ADMIN") {

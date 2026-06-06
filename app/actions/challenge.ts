@@ -102,3 +102,4 @@ export async function deleteChallenges(
     return { success: false, error: "Erreur lors de la suppression" };
   }
 }
+

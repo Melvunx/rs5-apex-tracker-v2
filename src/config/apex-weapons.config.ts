@@ -52,6 +52,7 @@ const RAW_WEAPONS = [
   { name: "Flatline", slug: "flatline", type: "AR" },
   { name: "Havoc", slug: "havoc", type: "AR" },
   { name: "Hemlok", slug: "hemlok", type: "AR" },
+  { name: "Nemesis", slug: "nemesis", type: "AR" },
 
   // LMGS
   { name: "Devotion", slug: "devotion", type: "LMG" },

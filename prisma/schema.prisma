@@ -78,6 +78,8 @@ model Verification {
   @@map("verifications")
 }
 
+// --- App models ---
+
 model Challenge {
   id            String   @id @default(cuid())
   challengeName String   @map("challenge_name")

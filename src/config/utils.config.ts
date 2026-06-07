@@ -7,8 +7,6 @@ export const slugSchema = z.string().min(1);
 
 export const idsSchema = z.array(z.uuid()).min(1);
 
-
-
 // --- Type de retour standardisé ---
 
 export type ActionResult<T> =

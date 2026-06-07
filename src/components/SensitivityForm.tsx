@@ -13,6 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  ADVANCED_CONTROLLER_SET_KEYS,
+  AdvancedControllerSettings,
+  AdvancedControllerSettingsSchema,
+  defaultAdvancedControllerSettings,
+  defaultOpticSettings,
+  defaultTurningSettings,
   OPTIC_KEYS,
   OpticSettings,
   OpticSettingsSchema,
@@ -39,6 +45,16 @@ type SectionProps = {
   pending: boolean;
 };
 
+type FieldRowProps = {
+  label: string;
+  children: React.ReactNode;
+};
+
+type GridProps<T> = {
+  values: T;
+  onChange: (key: keyof T, val: number) => void;
+};
+
 // --- Sous-composants ---
 
 function SectionCard({ title, children, onSave, pending }: SectionProps) {
@@ -63,13 +79,7 @@ function SectionCard({ title, children, onSave, pending }: SectionProps) {
   );
 }
 
-function FieldRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function FieldRow({ label, children }: FieldRowProps) {
   return (
     <div className="flex items-center justify-between gap-4 py-1.5 px-2 rounded-sm hover:bg-accent transition-colors">
       <Label className="text-sm text-muted-foreground min-w-40">{label}</Label>
@@ -78,13 +88,7 @@ function FieldRow({
   );
 }
 
-function OpticGrid({
-  values,
-  onChange,
-}: {
-  values: Partial<OpticSettings>;
-  onChange: (key: keyof OpticSettings, val: number) => void;
-}) {
+function OpticGrid({ values, onChange }: GridProps<OpticSettings>) {
   return (
     <div className="grid grid-cols-2 gap-3 mt-2">
       {OPTIC_KEYS.map((key) => (
@@ -103,13 +107,7 @@ function OpticGrid({
   );
 }
 
-function TurningGrid({
-  values,
-  onChange,
-}: {
-  values: Partial<TurningSettings>;
-  onChange: (key: keyof TurningSettings, val: number) => void;
-}) {
+function TurningGrid({ values, onChange }: GridProps<TurningSettings>) {
   return (
     <div className="grid grid-cols-2 gap-3 mt-2">
       {TURNING_KEYS.map(({ key, label, max }) => (
@@ -118,7 +116,28 @@ function TurningGrid({
             type="number"
             min="0"
             max={max}
-            value={values[key] ?? ""}
+            value={values[key]}
+            onChange={(e) => onChange(key, parseInt(e.target.value))}
+          />
+        </FieldRow>
+      ))}
+    </div>
+  );
+}
+
+function AdvancedSettingGrid({
+  values,
+  onChange,
+}: GridProps<AdvancedControllerSettings>) {
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-2">
+      {ADVANCED_CONTROLLER_SET_KEYS.map(({ key, label, max }) => (
+        <FieldRow key={key} label={label}>
+          <Input
+            type="number"
+            min="0"
+            max={max}
+            value={values[key]}
             onChange={(e) => onChange(key, parseInt(e.target.value))}
           />
         </FieldRow>
@@ -133,72 +152,85 @@ export function SensitivityForm({ defaultValues }: SensitivityFormProps) {
   const [isPending, startTransition] = useTransition();
 
   // Souris
-  const [mouseDpi, setMouseDpi] = useState<number | "">(
-    defaultValues?.mouseDpi ?? "",
-  );
-  const [mouseSensitivity, setMouseSensitivity] = useState<number | "">(
-    defaultValues?.mouseSensitivity ?? "",
+  const [mouseDpi, setMouseDpi] = useState(defaultValues?.mouseDpi ?? 800);
+  const [mouseSensitivity, setMouseSensitivity] = useState(
+    defaultValues?.mouseSensitivity ?? 1.0,
   );
   const [mouseOpticEnabled, setMouseOpticEnabled] = useState(
     defaultValues?.mouseOpticEnabled ?? false,
   );
-  const [mouseOptic, setMouseOptic] = useState<Partial<OpticSettings>>(
-    (defaultValues?.mouseOpticSettings as Partial<OpticSettings>) ?? {},
+  const [mouseOptic, setMouseOptic] = useState<OpticSettings>(
+    (defaultValues?.mouseOpticSettings as OpticSettings) ??
+      defaultOpticSettings,
   );
 
   // Manette — base
   const [baseControllerSetting, setBaseControllerSetting] = useState(
-    defaultValues?.baseControllerSetting ?? "",
+    defaultValues?.baseControllerSetting ?? "4-4 Classique",
   );
-  const [deadzone, setDeadzone] = useState<number | "">(
-    defaultValues?.deadzone ?? "",
-  );
-  const [outerThreshold, setOuterThreshold] = useState<number | "">(
-    defaultValues?.outerThreshold ?? "",
-  );
+
+  const [
+    advancedControllerSettingEnabled,
+    setAdvancedControllerSettingEnabled,
+  ] = useState(defaultValues?.advancedControllerSettingEnabled ?? false);
+
+  const [advancedControllerSettings, setAdvancedControllerSettings] =
+    useState<AdvancedControllerSettings>(
+      defaultValues?.advancedControllerSettings ??
+        defaultAdvancedControllerSettings,
+    );
 
   // Manette — optiques
   const [controllerOpticEnabled, setControllerOpticEnabled] = useState(
     defaultValues?.controllerOpticEnabled ?? false,
   );
-  const [controllerOptic, setControllerOptic] = useState<
-    Partial<OpticSettings>
-  >((defaultValues?.controllerOpticSettings as Partial<OpticSettings>) ?? {});
+  const [controllerOptic, setControllerOptic] = useState<OpticSettings>(
+    (defaultValues?.controllerOpticSettings as OpticSettings) ??
+      defaultOpticSettings,
+  );
 
   // Manette — turning
-  const [hipfire, setHipfire] = useState<Partial<TurningSettings>>(
-    (defaultValues?.hipfireSettings as Partial<TurningSettings>) ?? {},
+  const [hipfire, setHipfire] = useState<TurningSettings>(
+    (defaultValues?.hipfireSettings as TurningSettings) ??
+      defaultTurningSettings,
   );
-  const [ads, setAds] = useState<Partial<TurningSettings>>(
-    (defaultValues?.adsSettings as Partial<TurningSettings>) ?? {},
+  const [ads, setAds] = useState<TurningSettings>(
+    (defaultValues?.adsSettings as TurningSettings) ?? defaultTurningSettings,
   );
 
   // --- Helpers ---
 
   const updateMouseOptic = (key: keyof OpticSettings, val: number) =>
-    setMouseOptic((p) => ({ ...p, [key]: val }));
+    setMouseOptic((opt) => ({ ...opt, [key]: val }));
+
   const updateControllerOptic = (key: keyof OpticSettings, val: number) =>
-    setControllerOptic((p) => ({ ...p, [key]: val }));
+    setControllerOptic((opt) => ({ ...opt, [key]: val }));
+
+  const updateAdvanceControllerSettings = (
+    key: keyof AdvancedControllerSettings,
+    val: number,
+  ) => setAdvancedControllerSettings((acs) => ({ ...acs, [key]: val }));
+
   const updateHipfire = (key: keyof TurningSettings, val: number) =>
-    setHipfire((p) => ({ ...p, [key]: val }));
+    setHipfire((hpf) => ({ ...hpf, [key]: val }));
+
   const updateAds = (key: keyof TurningSettings, val: number) =>
-    setAds((p) => ({ ...p, [key]: val }));
+    setAds((ads) => ({ ...ads, [key]: val }));
 
   // --- Sauvegarde par section ---
 
-  const save = (partial: Partial<Sensitivity>) => {
+  const save = (sens: Partial<Sensitivity>) => {
     startTransition(async () => {
-      const result = await upsertSensitivity(partial);
-      if (result.success) toast.success("Sauvegardé !");
-      else toast.error("Erreur lors de la sauvegarde");
+      const result = await upsertSensitivity(sens);
+      if (result.success) toast.success("Sensi Sauvegardée !");
+      else toast.error("Erreur lors de la sauvegarde de la sensi");
     });
   };
 
   const saveMouseBase = () =>
     save({
-      mouseDpi: mouseDpi !== "" ? Number(mouseDpi) : undefined,
-      mouseSensitivity:
-        mouseSensitivity !== "" ? Number(mouseSensitivity) : undefined,
+      mouseDpi,
+      mouseSensitivity,
     });
 
   const saveMouseOptic = () =>
@@ -211,10 +243,15 @@ export function SensitivityForm({ defaultValues }: SensitivityFormProps) {
 
   const saveControllerBase = () =>
     save({
-      baseControllerSetting: baseControllerSetting || undefined,
-      deadzone: deadzone !== "" ? Number(deadzone) : undefined,
-      outerThreshold:
-        outerThreshold !== "" ? Number(outerThreshold) : undefined,
+      baseControllerSetting,
+    });
+
+  const saveAdvancedController = () =>
+    save({
+      advancedControllerSettingEnabled,
+      advancedControllerSettings: advancedControllerSettingEnabled
+        ? AdvancedControllerSettingsSchema.parse(advancedControllerSettings)
+        : undefined,
     });
 
   const saveControllerOptic = () =>
@@ -250,26 +287,21 @@ export function SensitivityForm({ defaultValues }: SensitivityFormProps) {
               type="number"
               min="100"
               max="32000"
+              step="100"
               placeholder="ex: 800"
               value={mouseDpi}
-              onChange={(e) =>
-                setMouseDpi(e.target.value !== "" ? Number(e.target.value) : "")
-              }
+              onChange={(e) => setMouseDpi(Number(e.target.value))}
             />
           </FieldRow>
           <FieldRow label="Sensibilité">
             <Input
               type="number"
-              step="0.1"
               min="0.1"
               max="20"
-              placeholder="ex: 2.5"
+              step="0.01"
+              placeholder="ex: 2.50"
               value={mouseSensitivity}
-              onChange={(e) =>
-                setMouseSensitivity(
-                  e.target.value !== "" ? Number(e.target.value) : "",
-                )
-              }
+              onChange={(e) => setMouseSensitivity(Number(e.target.value))}
             />
           </FieldRow>
         </SectionCard>
@@ -300,35 +332,9 @@ export function SensitivityForm({ defaultValues }: SensitivityFormProps) {
         >
           <FieldRow label="Preset de base">
             <Input
-              placeholder="ex: Classic"
+              placeholder="ex: 7-1 Linéaire"
               value={baseControllerSetting}
               onChange={(e) => setBaseControllerSetting(e.target.value)}
-            />
-          </FieldRow>
-          <FieldRow label="Deadzone">
-            <Input
-              type="number"
-              min="0"
-              max="50"
-              placeholder="ex: 5"
-              value={deadzone}
-              onChange={(e) =>
-                setDeadzone(e.target.value !== "" ? Number(e.target.value) : "")
-              }
-            />
-          </FieldRow>
-          <FieldRow label="Outer Threshold">
-            <Input
-              type="number"
-              min="0"
-              max="30"
-              placeholder="ex: 5"
-              value={outerThreshold}
-              onChange={(e) =>
-                setOuterThreshold(
-                  e.target.value !== "" ? Number(e.target.value) : "",
-                )
-              }
             />
           </FieldRow>
         </SectionCard>
@@ -353,19 +359,39 @@ export function SensitivityForm({ defaultValues }: SensitivityFormProps) {
         </SectionCard>
 
         <SectionCard
-          title="Turning — Hipfire"
-          onSave={saveControllerTurning}
+          title="Paramètres avancés"
+          onSave={saveAdvancedController}
           pending={isPending}
         >
-          <TurningGrid values={hipfire} onChange={updateHipfire} />
-        </SectionCard>
+          <FieldRow label="Activer">
+            <Switch
+              checked={advancedControllerSettingEnabled}
+              onCheckedChange={setAdvancedControllerSettingEnabled}
+            />
+          </FieldRow>
+          {advancedControllerSettingEnabled && (
+            <>
+              <AdvancedSettingGrid
+                values={advancedControllerSettings}
+                onChange={updateAdvanceControllerSettings}
+              />
+              <SectionCard
+                title="Turning — Hipfire"
+                onSave={saveControllerTurning}
+                pending={isPending}
+              >
+                <TurningGrid values={hipfire} onChange={updateHipfire} />
+              </SectionCard>
 
-        <SectionCard
-          title="Turning — ADS"
-          onSave={saveControllerTurning}
-          pending={isPending}
-        >
-          <TurningGrid values={ads} onChange={updateAds} />
+              <SectionCard
+                title="Turning — ADS"
+                onSave={saveControllerTurning}
+                pending={isPending}
+              >
+                <TurningGrid values={ads} onChange={updateAds} />
+              </SectionCard>
+            </>
+          )}
         </SectionCard>
       </TabsContent>
     </Tabs>

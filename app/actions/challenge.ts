@@ -5,13 +5,18 @@ import { ActionResult, idsSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 import { ChallengeNormalizedSchema } from "@/schema/challenge";
 import { Challenge } from "@app/generated/prisma/client";
+
 import { z } from "zod";
+import { getSession } from "./auth";
 
 // --- Actions ---
 
 export async function createChallenges(
   rawChallenges: unknown[],
 ): Promise<ActionResult<{ count: number }>> {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Non authentifié" };
+
   const parsed = z.array(ChallengeNormalizedSchema).safeParse(rawChallenges);
 
   if (!parsed.success) {
@@ -19,9 +24,14 @@ export async function createChallenges(
     return { success: false, error: "Données invalides" };
   }
 
+  const challenges = parsed.data.map((challenge) => ({
+    ...challenge,
+    userId: session.user.id,
+  }));
+
   try {
     const result = await prisma.challenge.createMany({
-      data: parsed.data,
+      data: challenges,
       skipDuplicates: false,
     });
 
@@ -102,4 +112,3 @@ export async function deleteChallenges(
     return { success: false, error: "Erreur lors de la suppression" };
   }
 }
-

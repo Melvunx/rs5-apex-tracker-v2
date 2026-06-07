@@ -2,7 +2,6 @@
 "use server";
 
 import { ActionResult } from "@/config/utils.config";
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   AdvancedControllerSettingsSchema,
@@ -14,12 +13,7 @@ import {
   SensitivitySchema,
   TurningSettingsSchema,
 } from "@/schema/sensitivity";
-import { headers } from "next/headers";
-
-async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
-}
-
+import { getSession } from "./auth";
 // Helper
 function parsePrismaSensitivity(
   raw: Awaited<ReturnType<typeof prisma.sensitivity.findUnique>>,
@@ -62,7 +56,7 @@ function parsePrismaSensitivity(
     advancedControllerSettings: parsedAdvancedControllerSettings.success
       ? parsedAdvancedControllerSettings.data
       : defaultAdvancedControllerSettings,
-      
+
     controllerOpticEnabled: raw.controllerOpticEnabled,
 
     controllerOpticSettings: parsedControllerOptic.success

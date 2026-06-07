@@ -1,11 +1,12 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { LoginForm } from "@/components/LoginForm";
+import { getSession } from "@app/actions/auth";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (session) redirect("/dashboard");
-    return (
+
+  return (
     <main className="min-h-screen flex items-center justify-center px-4">
       <LoginForm />
     </main>

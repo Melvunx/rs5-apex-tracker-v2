@@ -1,5 +1,6 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { Footer } from "@/layout/Footer";
+import { Header } from "@/layout/Header";
+import { getSession } from "@app/actions/auth";
 import { redirect } from "next/navigation";
 
 export default async function ProtectedLayout({
@@ -7,8 +8,13 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const session = await auth.api.getSession({ headers: await headers() });
-  // if (!session) redirect("/login");
+  const session = await getSession();
+  if (!session) redirect("/login");
 
-  return <>{children}</>;
+  return (
+    <>
+      <Header />
+      {children} <Footer />
+    </>
+  );
 }

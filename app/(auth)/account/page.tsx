@@ -1,11 +1,13 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getSession } from "@app/actions/auth";
+import { redirect } from "next/navigation";
 
 export default async function AccountPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const user    = session!.user;
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const user = session.user;
 
   return (
     <main className="max-w-3xl w-full mx-auto px-4 py-10">

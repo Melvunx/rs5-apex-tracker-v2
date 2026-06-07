@@ -2,12 +2,11 @@ import { SectionReveal } from "@/components/SectionReveal";
 import { FileForm } from "@/layout/File-form";
 import { Graph } from "@/layout/Graph";
 import { WeaponStats } from "@/layout/Weapon-Stats";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSession } from "better-auth/api";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (!session) redirect("/login");
 
   return (
@@ -15,10 +14,10 @@ export default async function DashboardPage() {
       <SectionReveal id="graph" className="max-w-4xl w-full">
         <Graph />
       </SectionReveal>
-      <SectionReveal id="form" className="max-w-3xl w-full" delay={0.1}>
+      <SectionReveal id="form" className="max-w-3xl w-full" delay={0.3}>
         <FileForm />
       </SectionReveal>
-      <SectionReveal id="carrousel" className="w-full" delay={0.15}>
+      <SectionReveal id="carrousel" className="w-full" delay={0.2}>
         <WeaponStats />
       </SectionReveal>
     </main>

@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -12,18 +13,17 @@ enum Role {
   ADMIN
 }
 
-
 // --- Better Auth required models ---
 
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
   image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   accounts    Account[]
   sessions    Session[]
@@ -51,6 +51,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("accounts")
+  @@index([userId])
 }
 
 model Session {
@@ -66,6 +67,7 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+  @@index([userId])
 }
 
 model Verification {
@@ -77,6 +79,7 @@ model Verification {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("verifications")
+  @@index([identifier])
 }
 
 // --- App models ---
@@ -106,31 +109,30 @@ model Challenge {
 model Sensitivity {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt      @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // --- Souris ---
-  mouseDpi         Int   @default(800)   @map("mouse_dpi")
-  mouseSensitivity Float @default(1.0)   @map("mouse_sensitivity")
+  mouseDpi         Int   @default(800) @map("mouse_dpi")
+  mouseSensitivity Float @default(1.0) @map("mouse_sensitivity")
 
   // Multiplicateurs optiques souris — stockés en JSON
   // { x1, x2, x3, x4, x6, x8, x10 } tous à 1.0 par défaut
   mouseOpticEnabled  Boolean @default(false) @map("mouse_optic_enabled")
-  mouseOpticSettings Json   @default("{}") @map("mouse_optic_settings")
+  mouseOpticSettings Json    @default("{}") @map("mouse_optic_settings")
 
   // --- Manette ---
-  baseControllerSetting String  @default("4-4 Classic")    @map("base_controller_setting")
+  baseControllerSetting String @default("4-4 Classic") @map("base_controller_setting")
 
   // {responseCurve, deadzone, outerThreshold}
-  advancedControllerSettingEnable Boolean @default(false)  @map("advance_controller_setting_enable")
-  advancedControllerSettings Json @default("{}")           @map("advance_controller_setting")
-
+  advancedControllerSettingEnable Boolean @default(false) @map("advance_controller_setting_enable")
+  advancedControllerSettings      Json    @default("{}") @map("advance_controller_setting")
 
   // Multiplicateurs optiques manette — même structure JSON que souris
   controllerOpticEnabled  Boolean @default(false) @map("controller_optic_enabled")
-  controllerOpticSettings Json   @default("{}")  @map("controller_optic_settings")
+  controllerOpticSettings Json    @default("{}") @map("controller_optic_settings")
 
   // Paramètres de rotation — stockés en JSON pour éviter 12 colonnes
   // { yaw, pitch, turningExtraYaw, turningExtraPitch, turningRampUpTime, turningRampUpDelay }

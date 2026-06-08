@@ -14,7 +14,7 @@
     "@icons-pack/react-simple-icons": "^13.13.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "better-auth": "^1.6.14",
+    "better-auth": "1.4.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",

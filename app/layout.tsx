@@ -9,8 +9,6 @@ import {
   Noto_Sans,
   Playfair_Display,
 } from "next/font/google";
-import { redirect } from "next/navigation";
-import { getSession } from "./actions/auth";
 import "./globals.css";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -40,9 +38,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const session = await getSession();
-  // if (!session) redirect("/login");
-
   return (
     <html
       lang="fr"

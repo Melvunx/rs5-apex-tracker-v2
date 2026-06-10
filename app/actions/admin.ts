@@ -1,5 +1,6 @@
 "use server";
 
+import { ActionResult, Err, OkEmpty } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 import z from "zod";
 import { getSession } from "./auth";
@@ -20,9 +21,37 @@ async function requireAdmin() {
 const userIdSchema = z.cuid2();
 const challengeIdSchema = z.cuid2();
 
+// --- Types publics ---
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  role: "USER" | "ADMIN";
+  createdAt: Date;
+  _count: { challenges: number };
+  accounts: { providerId: string }[];
+};
+
+export type AdminChallenge = {
+  id: string;
+  userId: string;
+  challengeName: string;
+  shotsHit: number;
+  kills: number;
+  weapon: string;
+  accuracy: number;
+  damage: number;
+  criticalShots: number;
+  totalShots: number;
+  roundtime: number;
+  createdAt: Date;
+};
+
 // --- Gestion des utilisateurs ---
 
-export async function getAllUsers() {
+export async function getAllUsers(): Promise<ActionResult<AdminUser[]>> {
   try {
     await requireAdmin();
 
@@ -44,14 +73,20 @@ export async function getAllUsers() {
       },
     });
 
-    return { success: true, data: users };
+    return {
+      success: true,
+      data: users.map((u) => ({ ...u, role: u.role as "USER" | "ADMIN" })),
+    };
   } catch (error) {
     console.error("❌ Erreur :", error);
     return { success: false, error: "Erreur lors de la récupération" };
   }
 }
 
-export async function updateUserRole(userId: unknown, role: unknown) {
+export async function updateUserRole(
+  userId: unknown,
+  role: unknown,
+): Promise<OkEmpty | Err> {
   try {
     await requireAdmin();
 
@@ -74,14 +109,13 @@ export async function updateUserRole(userId: unknown, role: unknown) {
   }
 }
 
-export async function deleteUser(userId: unknown) {
+export async function deleteUser(userId: unknown): Promise<OkEmpty | Err> {
   try {
     const session = await requireAdmin();
 
     const parsed = userIdSchema.safeParse(userId);
     if (!parsed.success) return { success: false, error: "ID invalide" };
 
-    // Empêche l'admin de se supprimer lui-même
     if (parsed.data === session.user.id) {
       return {
         success: false,
@@ -100,7 +134,9 @@ export async function deleteUser(userId: unknown) {
 
 // --- Gestion des données ---
 
-export async function getUserChallenges(userId: unknown) {
+export async function getUserChallenges(
+  userId: unknown,
+): Promise<ActionResult<AdminChallenge[]>> {
   try {
     await requireAdmin();
 
@@ -119,7 +155,9 @@ export async function getUserChallenges(userId: unknown) {
   }
 }
 
-export async function deleteChallenge(challengeId: unknown) {
+export async function deleteChallenge(
+  challengeId: unknown,
+): Promise<OkEmpty | Err> {
   try {
     await requireAdmin();
 
@@ -135,7 +173,9 @@ export async function deleteChallenge(challengeId: unknown) {
   }
 }
 
-export async function deleteAllUserChallenges(userId: unknown) {
+export async function deleteAllUserChallenges(
+  userId: unknown,
+): Promise<ActionResult<{ count: number }>> {
   try {
     await requireAdmin();
 
@@ -153,7 +193,9 @@ export async function deleteAllUserChallenges(userId: unknown) {
   }
 }
 
-export async function exportUserChallengesCSV(userId: unknown) {
+export async function exportUserChallengesCSV(
+  userId: unknown,
+): Promise<ActionResult<{ csv: string; userName: string }>> {
   try {
     await requireAdmin();
 

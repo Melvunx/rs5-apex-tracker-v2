@@ -8,12 +8,16 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 // --- Better Auth required models ---
+
+model Role {
+  id    String @id @default(cuid())
+  name  String @unique
+
+  users User[]
+
+  @@map("roles")
+}
 
 model User {
   id            String   @id @default(cuid())
@@ -21,15 +25,30 @@ model User {
   email         String   @unique
   emailVerified Boolean  @default(false) @map("email_verified")
   image         String?
-  role          Role     @default(USER)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Champ string conservé pour Better Auth (additionalFields + session)
+  role   String @default("USER")
+  roleId String? @map("role_id")
+  roleRef Role?  @relation(fields: [roleId], references: [id])
+
+  // Audit trail — qui a modifié le rôle et quand
+  roleChangedAt DateTime? @map("role_changed_at")
+  roleChangedBy String?   @map("role_changed_by")
+
+  // Bannissement sans suppression du compte
+  bannedAt  DateTime? @map("banned_at")
+  banReason String?   @map("ban_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   accounts    Account[]
   sessions    Session[]
   challenges  Challenge[]
   sensitivity Sensitivity?
 
+  @@index([role])
+  @@index([roleId])
   @@map("users")
 }
 

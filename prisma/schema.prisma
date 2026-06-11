@@ -104,8 +104,8 @@ model Verification {
 // --- App models ---
 
 enum Plateforme {
-  MANETTE
-  CLAVIER_SOURIS
+  CONTROLLER
+  MOUSE_KEYBOARD
 }
 
 enum TypeEntrainement {

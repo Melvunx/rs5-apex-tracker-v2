@@ -1,8 +1,9 @@
 // schema/challenge.ts
 import { z } from "zod";
 import { WeaponSchema } from "../config/apex-weapons.config";
+import { userIdSchema } from "./auth";
 
-export const PlateformeSchema = z.enum(["MANETTE", "CLAVIER_SOURIS"]);
+export const PlateformeSchema = z.enum(["CONTROLLER", "MOUSE_KEYBOARD"]);
 export type Plateforme = z.infer<typeof PlateformeSchema>;
 
 export const TypeEntrainementSchema = z.enum([
@@ -18,8 +19,8 @@ export const TypeEntrainementSchema = z.enum([
 export type TypeEntrainement = z.infer<typeof TypeEntrainementSchema>;
 
 export const PLATEFORME_LABELS: Record<Plateforme, string> = {
-  MANETTE: "Manette",
-  CLAVIER_SOURIS: "Clavier / Souris",
+  CONTROLLER: "Manette",
+  MOUSE_KEYBOARD: "Clavier / Souris",
 };
 
 export const TYPE_ENTRAINEMENT_LABELS: Record<TypeEntrainement, string> = {
@@ -79,25 +80,47 @@ export const ChallengeSchema = ChallengeCSVSchema.transform((data) => ({
   roundtime: data.Roundtime,
 }));
 
+// Schéma pour la création manuelle d'un challenge depuis le formulaire
+export const ManualChallengeSchema = z
+  .object({
+    challengeName: z.string().min(1, "Nom requis"),
+    weapon: z.string().min(1, "Arme requise"),
+    kills: z.coerce.number().int().nonnegative("Kills invalides"),
+    shotsHit: z.coerce.number().int().nonnegative("Tirs touchés invalides"),
+    totalShots: z.coerce.number().int().positive("Total tirs invalide"),
+    damage: z.coerce.number().int().nonnegative("Dégâts invalides"),
+    criticalShots: z.coerce.number().int().nonnegative("Critiques invalides"),
+    roundtime: z.coerce.number().int().positive("Temps invalide"),
+    plateforme: PlateformeSchema.optional(),
+    typeEntrainement: TypeEntrainementSchema.optional(),
+  })
+  .transform((data) => ({
+    ...data,
+    accuracy: data.totalShots > 0 ? (data.shotsHit / data.totalShots) * 100 : 0,
+  }));
+
+export const AdminChallengeSchema = ChallengeNormalizedSchema.extend({
+  id: userIdSchema,
+  userId: userIdSchema,
+  createdAt: z.date,
+});
+
+export const UserChallengeStatsSchema = z.object({
+  total: z.number().int().nonnegative(),
+  avgAccuracy: z.number().nonnegative(),
+  avgKills: z.number().int().nonnegative(),
+  avgDamage: z.number().int().nonnegative(),
+  bestAccuracy: z.number().nonnegative(),
+  totalKills: z.number().int().nonnegative(),
+  totalDamage: z.number().int().nonnegative(),
+  favoriteWeapon: z.string().nullable(),
+  mostUsedPlateforme: z.string().nullable(),
+  memberSince: z.date(),
+});
+
+export type UserChallengeStats = z.infer<typeof UserChallengeStatsSchema>;
+export type ManualChallenge = z.infer<typeof ManualChallengeSchema>;
+export type AdminChallenge = z.infer<typeof AdminChallengeSchema>;
 export type ChallengeCSV = z.input<typeof ChallengeSchema>;
 export type Challenge = z.output<typeof ChallengeSchema>;
 export type ChallengeNormalized = z.infer<typeof ChallengeNormalizedSchema>;
-
-// Schéma pour la création manuelle d'un challenge depuis le formulaire
-export const ManualChallengeSchema = z.object({
-  challengeName: z.string().min(1, "Nom requis"),
-  weapon: z.string().min(1, "Arme requise"),
-  kills: z.coerce.number().int().nonnegative("Kills invalides"),
-  shotsHit: z.coerce.number().int().nonnegative("Tirs touchés invalides"),
-  totalShots: z.coerce.number().int().positive("Total tirs invalide"),
-  damage: z.coerce.number().int().nonnegative("Dégâts invalides"),
-  criticalShots: z.coerce.number().int().nonnegative("Critiques invalides"),
-  roundtime: z.coerce.number().int().positive("Temps invalide"),
-  plateforme: PlateformeSchema.optional(),
-  typeEntrainement: TypeEntrainementSchema.optional(),
-}).transform((data) => ({
-  ...data,
-  accuracy: data.totalShots > 0 ? (data.shotsHit / data.totalShots) * 100 : 0,
-}));
-
-export type ManualChallenge = z.infer<typeof ManualChallengeSchema>;

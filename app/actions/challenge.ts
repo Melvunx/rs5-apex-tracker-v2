@@ -3,7 +3,7 @@
 import { ChallengeStat } from "@/config/apex-weapons.config";
 import { ActionResult, idsSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
-import { ChallengeNormalizedSchema, ManualChallengeSchema } from "@/schema/challenge";
+import { ChallengeNormalizedSchema, ManualChallengeSchema, UserChallengeStats } from "@/schema/challenge";
 import { Challenge } from "@app/generated/prisma/client";
 
 import { z } from "zod";
@@ -114,18 +114,7 @@ export async function createManualChallenge(
   }
 }
 
-export type UserChallengeStats = {
-  total: number;
-  avgAccuracy: number;
-  avgKills: number;
-  avgDamage: number;
-  bestAccuracy: number;
-  totalKills: number;
-  totalDamage: number;
-  favoriteWeapon: string | null;
-  mostUsedPlateforme: string | null;
-  memberSince: Date;
-};
+
 
 export async function getUserChallengeStats(): Promise<
   ActionResult<UserChallengeStats>

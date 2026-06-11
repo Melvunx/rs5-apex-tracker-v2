@@ -4,6 +4,8 @@ import { ActionResult, Err, OkEmpty } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
 import z from "zod";
 import { getSession } from "./auth";
+import { AdminUser, challengeIdSchema, userIdSchema } from "@/schema/auth";
+import { AdminChallenge } from "@/schema/challenge";
 
 // --- Guard admin ---
 
@@ -16,38 +18,7 @@ async function requireAdmin() {
   return session;
 }
 
-// --- Schémas ---
 
-const userIdSchema = z.cuid2();
-const challengeIdSchema = z.cuid2();
-
-// --- Types publics ---
-
-export type AdminUser = {
-  id: string;
-  name: string;
-  email: string;
-  image: string | null;
-  role: "USER" | "ADMIN";
-  createdAt: Date;
-  _count: { challenges: number };
-  accounts: { providerId: string }[];
-};
-
-export type AdminChallenge = {
-  id: string;
-  userId: string;
-  challengeName: string;
-  shotsHit: number;
-  kills: number;
-  weapon: string;
-  accuracy: number;
-  damage: number;
-  criticalShots: number;
-  totalShots: number;
-  roundtime: number;
-  createdAt: Date;
-};
 
 // --- Gestion des utilisateurs ---
 

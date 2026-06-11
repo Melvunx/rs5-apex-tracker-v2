@@ -103,6 +103,22 @@ model Verification {
 
 // --- App models ---
 
+enum Plateforme {
+  MANETTE
+  CLAVIER_SOURIS
+}
+
+enum TypeEntrainement {
+  STRAFE
+  TARGET_SWITCHING
+  TRACKING
+  FLICKING
+  MICRO_AJUSTEMENT
+  CLOSE_RANGE
+  LONGUE_DISTANCE
+  LIBRE
+}
+
 model Challenge {
   id            String   @id @default(cuid())
   challengeName String   @map("challenge_name")
@@ -116,12 +132,17 @@ model Challenge {
   roundtime     Int
   createdAt     DateTime @default(now()) @map("created_at")
 
+  plateforme       Plateforme?       @map("plateforme")
+  typeEntrainement TypeEntrainement? @map("type_entrainement")
+
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([weapon])
   @@index([challengeName])
   @@index([userId])
+  @@index([plateforme])
+  @@index([typeEntrainement])
   @@map("challenges")
 }
 

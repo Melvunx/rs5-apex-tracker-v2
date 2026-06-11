@@ -14,6 +14,7 @@ export type LinkType = z.infer<typeof LinkTypeSchema>;
 
 export const NAV_LINKS = [
   { link: "#graph", label: "Graphique", classname: "text-indigo-200" },
-  { link: "#form", label: "Ajouter des stats", classname: "text-amber-200" },
+  { link: "#form", label: "Importer CSV", classname: "text-amber-200" },
+  { link: "#manual", label: "Ajout manuel", classname: "text-violet-200" },
   { link: "#carrousel", label: "Stats par armes", classname: "text-lime-200" },
 ] satisfies LinkType[];

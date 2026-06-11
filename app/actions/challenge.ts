@@ -3,7 +3,7 @@
 import { ChallengeStat } from "@/config/apex-weapons.config";
 import { ActionResult, idsSchema } from "@/config/utils.config";
 import prisma from "@/lib/prisma";
-import { ChallengeNormalizedSchema } from "@/schema/challenge";
+import { ChallengeNormalizedSchema, ManualChallengeSchema } from "@/schema/challenge";
 import { Challenge } from "@app/generated/prisma/client";
 
 import { z } from "zod";
@@ -88,6 +88,101 @@ export async function getChallengesStats(
       success: false,
       error: "Erreur lors de la récupération des stats",
     };
+  }
+}
+
+export async function createManualChallenge(
+  raw: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Non authentifié" };
+
+  const parsed = ManualChallengeSchema.safeParse(raw);
+  if (!parsed.success) {
+    console.error("❌ Données invalides :", parsed.error);
+    return { success: false, error: "Données invalides" };
+  }
+
+  try {
+    const challenge = await prisma.challenge.create({
+      data: { ...parsed.data, userId: session.user.id },
+    });
+    return { success: true, data: { id: challenge.id } };
+  } catch (error) {
+    console.error("❌ Erreur Prisma :", error);
+    return { success: false, error: "Erreur lors de la création" };
+  }
+}
+
+export type UserChallengeStats = {
+  total: number;
+  avgAccuracy: number;
+  avgKills: number;
+  avgDamage: number;
+  bestAccuracy: number;
+  totalKills: number;
+  totalDamage: number;
+  favoriteWeapon: string | null;
+  mostUsedPlateforme: string | null;
+  memberSince: Date;
+};
+
+export async function getUserChallengeStats(): Promise<
+  ActionResult<UserChallengeStats>
+> {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Non authentifié" };
+
+  const userId = session.user.id;
+
+  try {
+    const [agg, favoriteWeaponRaw, plateformeRaw, user] =
+      await prisma.$transaction([
+        prisma.challenge.aggregate({
+          where: { userId },
+          _count: { id: true },
+          _avg: { accuracy: true, kills: true, damage: true },
+          _max: { accuracy: true },
+          _sum: { kills: true, damage: true },
+        }),
+        prisma.challenge.groupBy({
+          by: ["weapon"],
+          where: { userId },
+          _count: { weapon: true },
+          orderBy: { _count: { weapon: "desc" } },
+          take: 1,
+        }),
+        prisma.challenge.groupBy({
+          by: ["plateforme"],
+          where: { userId, plateforme: { not: null } },
+          _count: { plateforme: true },
+          orderBy: { _count: { plateforme: "desc" } },
+          take: 1,
+        }),
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: { createdAt: true },
+        }),
+      ]);
+
+    return {
+      success: true,
+      data: {
+        total: agg._count.id,
+        avgAccuracy: agg._avg.accuracy ?? 0,
+        avgKills: agg._avg.kills ?? 0,
+        avgDamage: agg._avg.damage ?? 0,
+        bestAccuracy: agg._max.accuracy ?? 0,
+        totalKills: agg._sum.kills ?? 0,
+        totalDamage: agg._sum.damage ?? 0,
+        favoriteWeapon: favoriteWeaponRaw[0]?.weapon ?? null,
+        mostUsedPlateforme: plateformeRaw[0]?.plateforme ?? null,
+        memberSince: user?.createdAt ?? new Date(),
+      },
+    };
+  } catch (error) {
+    console.error("❌ Erreur :", error);
+    return { success: false, error: "Erreur lors de la récupération des stats" };
   }
 }
 
